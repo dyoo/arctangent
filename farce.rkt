@@ -39,7 +39,6 @@
 ;; Otherwise, it turns magically into an assignment.
 (define-syntax (assign stx)
   (syntax-case stx ()
-    
     [(_ lhs rhs)
      (let ([expanded-lhs (local-expand #'lhs 
                                        (syntax-local-context) 
@@ -49,13 +48,26 @@
            [(syntax-property expanded-lhs 'setter)
             => (lambda (f)
                  (f #'rhs))]
-           [(and (identifier? expanded-lhs)
-                 (eq? #f (identifier-binding expanded-lhs)))
-            (quasisyntax/loc stx
-              (define #,expanded-lhs rhs))]
+           [(identifier? expanded-lhs)
+            (cond
+              [(eq? #f (identifier-binding expanded-lhs))
+               (quasisyntax/loc stx
+                 (define #,expanded-lhs rhs))]
+              [else
+               (quasisyntax/loc stx
+                 (set! #,expanded-lhs rhs))])]
            [else
-            (quasisyntax/loc stx
-              (set! #,expanded-lhs rhs))])))]))
+            (syntax-case expanded-lhs ()
+              [(structure index)
+               (quasisyntax/loc stx
+                 (let ([data structure])
+                   (if (prop:setter? data)
+                       ((prop:setter-accessor data) data index rhs)
+                       (error '= "~e does not support the setter protocol" data))))]
+               
+              [else
+               (quasisyntax/loc stx
+                 (set! #,expanded-lhs rhs))])])))]))
 
 
 

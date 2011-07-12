@@ -33,3 +33,7 @@ average
 ((fn (x y) (/ (+ x y) 2)) 2 4)
 
 "hello"
+("hello" 3)
+
+(= message "Hello world")
+;(= (message 2) #\x)

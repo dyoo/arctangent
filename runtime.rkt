@@ -9,6 +9,7 @@
 
 
 (define-struct str (v)
+  #:transparent
   #:property prop:procedure 
   (case-lambda 
     [(a-str index)
