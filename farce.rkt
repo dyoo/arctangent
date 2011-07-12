@@ -6,7 +6,31 @@
 
 
 
-(require (for-syntax racket/base))
+(require (for-syntax racket/base)
+         (for-syntax "runtime.rkt")
+         "runtime.rkt")
+
+
+
+(define-for-syntax (convert-datum v)
+  (cond
+    [(pair? v)
+     (mcons (convert-datum (car v))
+            (convert-datum (cdr v)))]
+    
+    [(string? v)
+     (str v)]
+
+    [else
+     v]))
+
+
+(define-syntax (my-datum stx)
+  (syntax-case stx ()
+    [(_ . v)
+     (with-syntax ([converted (convert-datum (syntax->datum #'v))])
+       #`(quote converted))]))
+
 
 
 ;; Variable assignment.
@@ -34,12 +58,13 @@
               (set! #,expanded-lhs rhs))])))]))
 
 
-;; FIXME
-;; We want to translate all the cons pairs in the syntax object to mpairs.
+
 (define-syntax (my-quote stx)
   (syntax-case stx ()
     [(_ thing)
-     #`(quote thing)]))
+     (with-syntax ([converted (convert-datum (syntax->datum #'thing))])
+       (syntax/loc stx 
+         (quote converted)))]))
 
          
 (define-syntax (my-car stx)
@@ -61,6 +86,19 @@
                         #`(set-mcdr! v #,rhs)))]))
 
 
+(define-syntax (def stx)
+  (syntax-case stx ()
+    [(_ name args body ...)
+     (syntax/loc stx
+       (define name (lambda args
+                      body ...)))]))
+
+(define-syntax (fn stx)
+  (syntax-case stx ()
+    [(_ args body ...)
+     (syntax/loc stx
+       (lambda args body ...))]))
+
 
 
 
@@ -69,10 +107,15 @@
                      [mcons cons]
                      [my-quote quote]
                      [my-car car]
-                     [my-cdr cdr]]
+                     [my-cdr cdr]
+                     [my-datum #%datum]]
          #%top
          #%top-interaction
-         #%datum
          #%module-begin
          #%app
-         +)
+         +
+         /
+         -
+         *
+         def
+         fn)

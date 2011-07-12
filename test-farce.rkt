@@ -19,3 +19,17 @@ z
 
 (= (cdr z) 'five)
 z
+
+(def average (x y)
+  (/ (+ x y) 2))
+
+average
+
+(fn (x y) (/ (+ x y) 2))
+
+
+(= a (fn (x y) (/ (+ x y) 2)))
+
+((fn (x y) (/ (+ x y) 2)) 2 4)
+
+"hello"
