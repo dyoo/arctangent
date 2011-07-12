@@ -1,5 +1,11 @@
 #lang racket/base
 
+;; The absolute minimum necessary to play with:
+;;
+;; http://ycombinator.com/arc/tut.txt
+
+
+
 (require (for-syntax racket/base))
 
 
@@ -15,19 +21,32 @@
                                        #f)])
        (begin 
          (cond
-           [(eq? #f (identifier-binding expanded-lhs))
+           [(and (identifier? expanded-lhs)
+                 (eq? #f (identifier-binding expanded-lhs)))
             (quasisyntax/loc stx
               (define #,expanded-lhs rhs))]
            [else
             (quasisyntax/loc stx
               (set! #,expanded-lhs rhs))])))]))
 
-         
+
+;; FIXME
+;; We want to translate all the cons pairs in the syntax object to mpairs.
+(define-syntax (my-quote stx)
+  (syntax-case stx ()
+    [(_ thing)
+     #`(quote thing)]))
+
          
 
 
-(provide [rename-out [assign =]]
+(provide [rename-out [assign =]
+                     [mcons cons]
+                     [my-quote quote]]
          #%top
          #%top-interaction
          #%datum
-         #%module-begin)
+         #%module-begin
+         #%app
+         +)
+
