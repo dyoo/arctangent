@@ -10,3 +10,12 @@ foo
 
 (cons 'f '(a b))
 (= f '(a b))
+
+
+
+(= z (cons (cons 3 4) 5))
+(= (car (car z)) 'three)
+z
+
+(= (cdr z) 'five)
+z

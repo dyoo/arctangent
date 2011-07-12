@@ -15,12 +15,16 @@
 ;; Otherwise, it turns magically into an assignment.
 (define-syntax (assign stx)
   (syntax-case stx ()
+    
     [(_ lhs rhs)
      (let ([expanded-lhs (local-expand #'lhs 
                                        (syntax-local-context) 
                                        #f)])
        (begin 
          (cond
+           [(syntax-property expanded-lhs 'setter)
+            => (lambda (f)
+                 (f #'rhs))]
            [(and (identifier? expanded-lhs)
                  (eq? #f (identifier-binding expanded-lhs)))
             (quasisyntax/loc stx
@@ -38,15 +42,37 @@
      #`(quote thing)]))
 
          
+(define-syntax (my-car stx)
+  (syntax-case stx ()
+    [(_ v)
+     (syntax-property (syntax/loc stx
+                        (mcar v))
+                      'setter
+                      (lambda (rhs)
+                        #`(set-mcar! v #,rhs)))]))
+
+(define-syntax (my-cdr stx)
+  (syntax-case stx ()
+    [(_ v)
+     (syntax-property (syntax/loc stx
+                        (mcdr v))
+                      'setter
+                      (lambda (rhs)
+                        #`(set-mcdr! v #,rhs)))]))
+
+
+
+
 
 
 (provide [rename-out [assign =]
                      [mcons cons]
-                     [my-quote quote]]
+                     [my-quote quote]
+                     [my-car car]
+                     [my-cdr cdr]]
          #%top
          #%top-interaction
          #%datum
          #%module-begin
          #%app
          +)
-
