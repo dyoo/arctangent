@@ -4,20 +4,34 @@
          racket/runtime-path
          racket/list
          rackunit
-         syntax/strip-context)
+         syntax/strip-context
+         "runtime.rkt")
 
 (define-runtime-path language.rkt "language.rkt")
+(define-runtime-path runtime.rkt "runtime.rkt")
 
 (define my-eval #f)
 (define output-port #f)
 (define error-port #f)
 
+(define my-namespace-specs
+  (let ([specs (sandbox-namespace-specs)])
+    `(,(car specs)
+      ,@(cdr specs)
+      racket/mpair
+      (file ,(path->string runtime.rkt)))))
+
+
 (define (init-my-eval!)
-  (set! output-port (open-output-string))
-  (set! error-port (open-output-string))
-  (parameterize ([sandbox-output output-port]
-                 [sandbox-error-output error-port])
+  (parameterize ([sandbox-namespace-specs my-namespace-specs])
     (set! my-eval (make-evaluator `(file ,(path->string language.rkt))))))
+
+
+(define my-rack-eval 
+  (parameterize ([sandbox-namespace-specs my-namespace-specs])
+    (make-evaluator 'racket/base
+                    #:requires `((file ,(path->string runtime.rkt))
+                                 racket/mpair))))
 
 (init-my-eval!)
 
@@ -33,7 +47,7 @@
        (loop #f (rest tests))]
       [(eq? (syntax->datum (first tests)) '==>)
        (let ([src (first tests)]
-             [expected (syntax->datum (second tests))])
+             [expected (my-rack-eval (syntax->datum (second tests)))])
          (with-check-info* (list (make-check-location (list (syntax-source src)
                                                             (syntax-line src)
                                                             (syntax-column src)
@@ -55,7 +69,7 @@
       
       (= foo 13)
       foo   ==>   13
-      'foo  ==>   foo
+      'foo  ==>   'foo
       
       ---
       
@@ -64,19 +78,19 @@
       
       ---
       
-      (cons 'f '(a b))    ==> (f a b)
+      (cons 'f '(a b))    ==> (list->mlist '(f a b))
       (= f '(a b))
-      f                   ==> (a b)
+      f                   ==> (list->mlist '(a b))
             
       ---
       
       
       (= z (cons (cons 3 4) 5))
       (= (car (car z)) 'three)
-      z                   ==> ((three . 4) . 5)
+      z                   ==>  (mcons (mcons 'three  4)  5)
       
       (= (cdr z) 'five)
-      z                   ==> ((three . 4) . five)
+      z                   ==> (mcons (mcons 'three  4)  'five)
       
       ---
       
@@ -93,15 +107,15 @@
   
       (a 17 0) ==> 17/2
       
-      "hello"   ==> "hello"
-      ;("hello" 3)   ==> #\l
-      ;("hello" 4)   ==> #\o
+      "hello"   ==> (make-str "hello")
+      ("hello" 3)   ==> #\l
+      ("hello" 4)   ==> #\o
       ---
 
       
       (= message "Hello world")
       (= (message 2) #\x)
-      message         ==> "Hexlo world"
+      message         ==> (make-str "Hexlo world")
 
       )))
 
