@@ -1,4 +1,4 @@
-#lang s-exp "farce.rkt"
+#lang planet dyoo/arctangent
 
 (= foo 13)
 foo
