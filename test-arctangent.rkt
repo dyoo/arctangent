@@ -4,8 +4,8 @@
          racket/runtime-path
          racket/list
          rackunit
-         syntax/strip-context
-         "runtime.rkt")
+         syntax/strip-context)
+
 
 (define-runtime-path language.rkt "language.rkt")
 (define-runtime-path runtime.rkt "runtime.rkt")

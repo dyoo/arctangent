@@ -8,6 +8,7 @@
   (make-struct-type-property 'prop:setter))
 
 
+
 ;; Strings are a data structure that support the setter.
 ;; We also define a custom-write so that they still look like 
 ;; plain, vanilla strings.
