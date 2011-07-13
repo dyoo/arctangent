@@ -107,7 +107,7 @@
   
       (a 17 0) ==> 17/2
       
-      "hello"   ==> (make-str "hello")
+      "hello"   ==> (str "hello")
       ("hello" 3)   ==> #\l
       ("hello" 4)   ==> #\o
       ---
@@ -115,7 +115,7 @@
       
       (= message "Hello world")
       (= (message 2) #\x)
-      message         ==> (make-str "Hexlo world")
+      message         ==> (str "Hexlo world")
 
       )))
 

@@ -12,7 +12,7 @@
               #,(convert-datum (cdr v) for-quote?))]
     
     [(string? v)
-     #`(make-str (string-copy #,v))]
+     #`(str (string-copy #,v))]
     
     [else
      (cond
