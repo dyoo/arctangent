@@ -13,14 +13,11 @@
 (define error-port #f)
 
 (define (init-my-eval!)
-  ;;(call-with-trusted-sandbox-configuration
-  ;; (lambda ()
-     (set! output-port (open-output-string))
-     (set! error-port (open-output-string))
-     (parameterize ([sandbox-output output-port]
-                    [sandbox-error-output error-port])
-       (set! my-eval (make-evaluator `(file ,(path->string language.rkt))))))
-;))
+  (set! output-port (open-output-string))
+  (set! error-port (open-output-string))
+  (parameterize ([sandbox-output output-port]
+                 [sandbox-error-output error-port])
+    (set! my-eval (make-evaluator `(file ,(path->string language.rkt))))))
 
 (init-my-eval!)
 
@@ -53,7 +50,10 @@
 
 (define program-tests
   (strip-context
-   #'((= foo 13)
+   #'(42 ==> 42
+         
+      
+      (= foo 13)
       foo   ==>   13
       'foo  ==>   foo
       
@@ -93,17 +93,16 @@
   
       (a 17 0) ==> 17/2
       
-      "hello"
-      ("hello" 3)   ==> #\l
-      ("hello" 4)   ==> #\o
+      "hello"   ==> "hello"
+      ;("hello" 3)   ==> #\l
+      ;("hello" 4)   ==> #\o
       ---
 
       
       (= message "Hello world")
       (= (message 2) #\x)
       message         ==> "Hexlo world"
-      
-      
+
       )))
 
   

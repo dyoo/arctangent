@@ -7,30 +7,15 @@
 
 
 (require (for-syntax racket/base)
-         (for-syntax "runtime.rkt")
-         "runtime.rkt")
+         (for-syntax "language-helpers.rkt")
+         "runtime.rkt") 
 
-
-
-(define-for-syntax (convert-datum v)
-  (cond
-    [(pair? v)
-     (mcons (convert-datum (car v))
-            (convert-datum (cdr v)))]
-    
-    [(string? v)
-     (str v)]
-
-    [else
-     v]))
 
 
 (define-syntax (my-datum stx)
   (syntax-case stx ()
     [(_ . v)
-     (with-syntax ([converted (convert-datum (syntax->datum #'v))])
-       #`(quote converted))]))
-
+     (convert-datum (syntax->datum #'v) #f)]))
 
 
 ;; Variable assignment.
@@ -74,9 +59,7 @@
 (define-syntax (my-quote stx)
   (syntax-case stx ()
     [(_ thing)
-     (with-syntax ([converted (convert-datum (syntax->datum #'thing))])
-       (syntax/loc stx 
-         (quote converted)))]))
+     (convert-datum (syntax->datum #'thing) #t)]))
 
          
 (define-syntax (my-car stx)
