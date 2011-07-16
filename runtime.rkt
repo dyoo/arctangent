@@ -94,3 +94,10 @@
 
 (define (arc-even x)
   (adapt/bool (even? x)))
+
+
+
+(define (arc-is? x y)
+  (if (and (str? x) (str? y))
+      (string=? (str-v x) (str-v y))
+      (eq? x y)))

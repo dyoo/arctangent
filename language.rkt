@@ -50,22 +50,28 @@
             (cond
               [(eq? #f (identifier-binding expanded-lhs))
                (quasisyntax/loc stx
-                 (define #,expanded-lhs rhs))]
+                 (begin (define #,expanded-lhs rhs)
+                        #,expanded-lhs))]
               [else
                (quasisyntax/loc stx
-                 (set! #,expanded-lhs rhs))])]
+                 (begin (set! #,expanded-lhs rhs)
+                        #,expanded-lhs))])]
            [else
             (syntax-case expanded-lhs ()
               [(structure index)
                (quasisyntax/loc stx
-                 (let ([data structure])
+                 (let ([data structure]
+                       [rhs-value rhs])
                    (if (prop:setter? data)
-                       ((prop:setter-accessor data) data index rhs)
+                       (begin ((prop:setter-accessor data) data index rhs-value)
+                              rhs-value)
                        (error '= "~e does not support the setter protocol" data))))]
                
               [else
                (quasisyntax/loc stx
-                 (set! #,expanded-lhs rhs))])])))]))
+                 (let ([rhs-value rhs])
+                   (set! #,expanded-lhs rhs-value)
+                   rhs-value))])])))]))
 
 
 
@@ -101,19 +107,27 @@
      (cond 
        [(lexically-bound? #'name)
         (syntax/loc stx
-          (set! name (lambda args
-                         body ...)))]
+          (begin (set! name (fn args
+                              body ...))
+                 name))]
        [else
         (syntax/loc stx
-          (define name (lambda args
-                         body ...)))])]))
+          (begin (define name (fn args
+                                body ...))
+                 name))])]))
 
 (define-syntax (fn stx)
   (syntax-case stx ()
-    [(_ args body ...)
+    [(_ (id ...) body ...)
      (syntax/loc stx
-       (lambda args body ...))]))
-
+       (lambda (id ...) body ...))]
+    
+    [(_ (id ... . rest-id) body ...)
+     (with-syntax ([(rest-arg) (generate-temporaries #'(rest-id))])
+       (syntax/loc stx
+         (lambda (id ... . rest-arg) 
+           (let ([rest-id (list->arc-list rest-arg)])
+             body ...))))]))
 
 
 (define-syntax (arc-let stx)
@@ -233,6 +247,16 @@
       t))
 
 
+(define (arc-list . args)
+  (list->arc-list args))
+
+
+(define (arc-is x y)
+  (adapt/bool (arc-is? x y)))
+
+
+(define (arc-iso x y)
+  (adapt/bool (equal? x y)))
 
 
 (provide [rename-out [assign =]
@@ -240,13 +264,15 @@
                      [arc-quote quote]
                      [arc-car car]
                      [arc-cdr cdr]
+                     [arc-list list]
                      [arc-datum #%datum]
                      [arc-let let]
                      [arc-with with]
                      [arc-if if]
                      [arc-and and]
                      [arc-or or]
-                     
+                     [arc-is is]
+                     [arc-iso iso]
                      [arc-odd odd]
                      [arc-even even]]
          #%top

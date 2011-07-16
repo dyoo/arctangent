@@ -206,6 +206,34 @@
 
       ---
       
+      (is 'a 'a) ==> t
+      (is 'a 'b) ==> nil
+      (is "foo" "foo") ==> t
+      (iso "foo" "bar") ==> nil
+      (let x (list 'a) (is x x)) ==> t
+      (is (list 'a) (list 'a)) ==> nil
+      
+      ---
+
+      (iso 'a 'a) ==> t
+      (iso 'a 'b) ==> nil
+      (iso "foo" "foo") ==> t
+      (iso "foo" "bar") ==> nil
+      (let x (list 'a) (iso x x)) ==> t
+      (iso (list 'a) (list 'a)) ==> t
+      (iso (list 'a) (list 'b)) ==> nil
+
+      
+      ---
+      (def foo (x y . z) 
+       (list x y z))
+      
+      (foo (+ 1 2) (+ 3 4) (+ 5 6) (+ 7 8)) ==> (mcons 3 (mcons 7 (mcons (mcons 11 (mcons 15 nil))
+                                                                         nil)))
+
+
+      ---
+      
       
       )))
 
