@@ -23,7 +23,8 @@
 
 
 (define (init-my-eval!)
-  (parameterize ([sandbox-namespace-specs my-namespace-specs])
+  (parameterize ([sandbox-output 'string]
+                 [sandbox-namespace-specs my-namespace-specs])
     (set! my-eval (make-evaluator `(file ,(path->string language.rkt))))))
 
 
@@ -56,6 +57,18 @@
                            (lambda ()
                              (check-equal? last-result expected))))
        (loop #f (rest (rest tests)))]
+      [(eq? (syntax->datum (first tests)) '==>/stdout)
+       (let ([src (first tests)]
+             [expected (my-rack-eval (syntax->datum (second tests)))])
+         (with-check-info* (list (make-check-location (list (syntax-source src)
+                                                            (syntax-line src)
+                                                            (syntax-column src)
+                                                            (syntax-position src)
+                                                            (syntax-span src))))
+                           (lambda ()
+                             (check-equal? (get-output my-eval) expected))))
+       (loop #f (rest (rest tests)))]
+      
       [else
        (let ([next-result (my-eval (first tests))])
          (loop next-result (rest tests)))])))
@@ -78,9 +91,9 @@
       
       ---
       
-      (cons 'f '(a b))    ==> (list->mlist '(f a b))
+      (cons 'f '(a b))    ==> (list->arc-list '(f a b))
       (= f '(a b))
-      f                   ==> (list->mlist '(a b))
+      f                   ==> (list->arc-list '(a b))
             
       ---
       
@@ -117,6 +130,83 @@
       (= (message 2) #\x)
       message         ==> (str "Hexlo world")
 
+      ---
+      
+      (let x 1
+        (+ x (* x 2))) ==> 3
+      
+                       
+      (with (x 3 y 4)
+            (sqrt (+ (expt x 2)
+                     (expt y 2)))) ==> 5
+       
+      ---
+                                   
+      (prn "hello")  ==>/stdout '"hello\n"
+      
+      ---
+      
+      (def average (x y)
+        (prn "my arguments were: " x " " y)
+        (/ (+ x y) 2))
+      
+      (average 100 200)
+      ==> 150
+      ==>/stdout '"my arguments were: 100 200\n"
+      
+      
+      ---
+      
+      (if (odd 1) 'a 'b) ==> 'a
+      (if (odd 2) 'a 'b) ==> 'b
+      
+      
+      ---
+      
+      (odd 1) ==> t
+      (odd 2) ==> nil
+      
+      ---
+      
+      (if (odd 2) 'a) ==> nil
+      
+      ---
+      
+      (do (prn "hello")
+        (+ 2 3))
+      ==> 5
+      ==>/stdout '"hello\n"
+      
+      ---
+      
+      (and nil (pr "you'll never see this"))
+      ==> nil
+      ==>/stdout '""
+      
+      ---
+      
+      (def mylen (xs)
+       (if (no xs)
+           0
+           (+ 1 (mylen (cdr xs)))))
+
+      (mylen nil)
+      ==> 0
+      
+      (mylen '(a b))
+      ==> 2
+      
+      ---
+      
+      ;; Re-definition is allowed.
+      (def f (x) (* x x))
+      (f 3) ==> 9
+      (def f (x) (* x x x))
+      (f 3) ==> 27
+
+      ---
+      
+      
       )))
 
   
