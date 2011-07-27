@@ -101,6 +101,7 @@
     (f (g x))))
 
 
+
 (define (arc-negate f)
   (lambda (x)
     (if (arc-true? (f x))
@@ -112,3 +113,12 @@
   (if (and (str? x) (str? y))
       (string=? (str-v x) (str-v y))
       (eq? x y)))
+
+
+(define (arc-map f l)
+  (cond
+    [(eq? l nil)
+     nil]
+    [else 
+     (mcons (f (mcar l))
+            (arc-map f (mcdr l)))]))

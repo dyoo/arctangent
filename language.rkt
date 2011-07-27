@@ -9,7 +9,14 @@
 (require (for-syntax racket/base)
          (for-syntax racket/list)
          (for-syntax "language-helpers.rkt")
+         racket/stxparam
          "runtime.rkt") 
+
+
+
+(define-syntax-parameter arc-lambda-placeholder
+  (lambda (stx)
+    (raise-syntax-error #f "placeholder is being used outside of a function template" stx)))
 
 
 
@@ -143,7 +150,12 @@
                         (mcar v))
                       'setter
                       (lambda (rhs)
-                        #`(set-mcar! v #,rhs)))]))
+                        #`(set-mcar! v #,rhs)))]
+    [_
+     (identifier? stx)
+     (syntax/loc stx 
+       mcar)]))
+
 
 (define-syntax (arc-cdr stx)
   (syntax-case stx ()
@@ -152,7 +164,11 @@
                         (mcdr v))
                       'setter
                       (lambda (rhs)
-                        #`(set-mcdr! v #,rhs)))]))
+                        #`(set-mcdr! v #,rhs)))]
+    [_
+     (identifier? stx)
+     (syntax/loc stx 
+       mcdr)]))
 
 
 (define-syntax (def stx)
@@ -314,6 +330,34 @@
   (adapt/bool (equal? x y)))
 
 
+(define-for-syntax (contains-lambda-placeholder? los)
+  (ormap (lambda (stx) (and (identifier? stx)
+                            (free-identifier=? #'arc-lambda-placeholder stx)))
+         los))
+
+
+;; application sees if the expression is an implicit lambda
+(define-syntax (arc-app stx)
+  (syntax-case stx ()
+    [(_ operator+operands ...)
+     (cond
+       [(contains-lambda-placeholder? (syntax->list #'(operator+operands ...)))
+        (with-syntax ([(id) (generate-temporaries #'(_))])
+          (syntax/loc stx
+            (fn (id)
+                (syntax-parameterize ([arc-lambda-placeholder (make-rename-transformer #'id)])
+                                     (#%app operator+operands ...)))))]
+       [else
+        (syntax/loc stx
+          (#%app operator+operands ...))])]
+    [(_ . operator+operands)
+     (syntax/loc stx
+       (#%app . operator+operands))]
+    [(_)
+     (identifier? stx)
+     (syntax/loc stx
+       #%app)]))
+
 
 
      
@@ -340,10 +384,12 @@
                      [arc-iso iso]
                      [arc-odd odd]
                      [arc-even even]
-                     [arc-top #%top]]
+                     [arc-top #%top]
+                     [arc-lambda-placeholder _]
+                     [arc-app #%app]
+                     [arc-map map]]
          #%top-interaction
          #%module-begin
-         #%app
 
          nil
          no

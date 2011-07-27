@@ -242,18 +242,29 @@
         (+ x x))
       
       (f:g 3) ==> '36
-       
+
+      (map odd:car '((1 2) (4 5) (7 9))) ==> (mcons t (mcons nil (mcons t nil)))
+      
       ---
       
       (def f (x)
-        (= x 0))
+        (is x 0))
       
       (f 0) ==> t
       (f 1) ==> nil
       (~f 0) ==> nil
       (~f 1) ==> t
-              
       
+      (map ~odd '(1 2 3 4 5)) ==> (mcons nil (mcons t (mcons nil (mcons t (mcons nil nil)))))
+
+      ---
+
+      ;; Implicit lambdas
+      ((+ _ 10) 3) ==> 13
+      
+      (map [+ _ 10] '(1 2 3))  ==> (mcons 11 (mcons 12 (mcons 13 nil)))
+              
+
       )))
 
   
