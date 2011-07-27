@@ -29,7 +29,62 @@
        #f]
       [else
        #t])))
-     
+
+
+
+(define-for-syntax (looks-like-composition? id)
+  (let ([name (symbol->string (syntax-e id))])
+    (let ([pieces (regexp-split #rx":" name)])
+      (cond
+        [(= (length pieces) 2)
+         (let ([lhs (datum->syntax id (string->symbol (car pieces)))]
+               [rhs (datum->syntax id (string->symbol (cadr pieces)))])
+           (if (and (lexically-bound? lhs)
+                    (lexically-bound? rhs))
+               (list lhs rhs)
+               #f))]
+        [else
+         #f]))))
+
+(define-for-syntax (looks-like-negation? id)
+  (let ([name (symbol->string (syntax-e id))])
+    (let ([a-match (regexp-match #rx"~(.+)" name)])
+      (cond
+        [a-match
+         (let ([maybe-negated-function                 
+                (datum->syntax id (string->symbol (cadr a-match)))])
+           (cond [(lexically-bound? maybe-negated-function)
+                  maybe-negated-function]
+                 [else
+                  #f]))]
+        [else
+         #f]))))
+
+
+;; When we hit on toplevel identifiers that we don't know about, see if
+;; this is a use of the composition of two functions using ':', where the left
+;; and right sides are bound identifiers.
+(define-syntax (arc-top stx)
+  (syntax-case stx ()
+    [(_ . id)
+     (cond
+       [(looks-like-composition? #'id)
+        => (lambda (lhs+rhs)
+             (with-syntax ([lhs (car lhs+rhs)]
+                           [rhs (cadr lhs+rhs)])
+               (syntax/loc #'id 
+                 (arc-compose lhs rhs))))]
+       [(looks-like-negation? #'id)
+        => (lambda (negated-function)
+             (with-syntax ([negated-function negated-function])
+               (syntax/loc #'id
+                 (arc-negate negated-function))))]
+       [else
+        ;; Otherwise, just reuse Racket's #%top.
+        (syntax/loc stx
+          (#%top . id))])]))
+
+
 
 ;; Variable assignment.
 ;; We expand the left hand side and see if it's already a bound identifier.
@@ -259,6 +314,16 @@
   (adapt/bool (equal? x y)))
 
 
+
+
+     
+    
+
+
+
+
+
+
 (provide [rename-out [assign =]
                      [mcons cons]
                      [arc-quote quote]
@@ -274,8 +339,8 @@
                      [arc-is is]
                      [arc-iso iso]
                      [arc-odd odd]
-                     [arc-even even]]
-         #%top
+                     [arc-even even]
+                     [arc-top #%top]]
          #%top-interaction
          #%module-begin
          #%app

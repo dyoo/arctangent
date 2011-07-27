@@ -234,6 +234,25 @@
 
       ---
       
+      ;; Check composition
+      (def f (x)
+        (* x x))
+      
+      (def g (x)
+        (+ x x))
+      
+      (f:g 3) ==> '36
+       
+      ---
+      
+      (def f (x)
+        (= x 0))
+      
+      (f 0) ==> t
+      (f 1) ==> nil
+      (~f 0) ==> nil
+      (~f 1) ==> t
+              
       
       )))
 

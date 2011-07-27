@@ -96,6 +96,17 @@
   (adapt/bool (even? x)))
 
 
+(define (arc-compose f g)
+  (lambda (x)
+    (f (g x))))
+
+
+(define (arc-negate f)
+  (lambda (x)
+    (if (arc-true? (f x))
+        nil
+        t)))
+
 
 (define (arc-is? x y)
   (if (and (str? x) (str? y))
