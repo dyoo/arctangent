@@ -88,7 +88,16 @@
 
 (define-syntax-rule (adapt/bool x)
   (if x t nil))
-  
+
+
+
+(define (arc-no x)
+  (if (arc-true? x)
+      nil
+      t))
+
+
+
 (define (arc-odd x)
   (adapt/bool (odd? x)))
 

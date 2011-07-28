@@ -270,7 +270,7 @@
                    #,(loop (rest (rest forms)))))]))])]))
             
 
-(define-syntax (do stx)
+(define-syntax (arc-do stx)
   (syntax-case stx ()
     [(_ body ...)
      (syntax/loc stx
@@ -283,7 +283,7 @@
     [(_ test body ...)
      (syntax/loc stx
        (arc-if test
-          (do body ...)))]))
+          (arc-do body ...)))]))
 
 
 
@@ -312,10 +312,26 @@
                  (arc-or y ...))))]))
 
 
-(define (no x)
-  (if (arc-true? x)
-      nil
-      t))
+
+(define-syntax (arc-case stx)
+  (syntax-case stx ()
+    [(_ val-exp k+v ...)
+     (quasisyntax/loc stx
+       (let ([val val-exp])
+         #,(let loop ([k+vs (syntax->list #'(k+v ...))])
+             (cond
+              [(empty? k+vs)
+               (syntax/loc stx nil)]
+              [(empty? (rest k+vs))
+               (first k+vs)]
+              [else
+               (quasisyntax/loc stx
+                 (arc-if (arc-is val '#,(first k+vs))
+                         #,(second k+vs)
+                         #,(loop (rest (rest k+vs)))))]))))]))
+
+
+
 
 
 (define (arc-list . args)
@@ -387,16 +403,18 @@
                      [arc-top #%top]
                      [arc-lambda-placeholder _]
                      [arc-app #%app]
-                     [arc-map map]]
+                     [arc-map map]
+                     [arc-do do]
+                     [arc-when when]
+                     [arc-no no]
+                     [arc-case case]]
          #%top-interaction
          #%module-begin
 
          nil
-         no
          
          def
          fn
-         do
 
          +
          /

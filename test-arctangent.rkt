@@ -182,7 +182,8 @@
       (and nil (pr "you'll never see this"))
       ==> nil
       ==>/stdout '""
-      
+
+
       ---
       
       (def mylen (xs)
@@ -195,6 +196,11 @@
       
       (mylen '(a b))
       ==> 2
+      
+      ---
+
+      (when (odd 1) 'odd) ==> 'odd
+      (when (odd 0) 'odd) ==> nil
       
       ---
       
@@ -223,8 +229,22 @@
       (iso (list 'a) (list 'a)) ==> t
       (iso (list 'a) (list 'b)) ==> nil
 
+
+      ---
+      ;; Case statements
+      
+      (def translate (sym)
+       (case sym
+         apple 'mela 
+         onion 'cipolla
+               'che?))
+      
+      (translate 'apple) ==> 'mela
+      (translate 'syzygy) ==> 'che?
+
       
       ---
+
       (def foo (x y . z) 
        (list x y z))
       
