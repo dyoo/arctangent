@@ -311,8 +311,6 @@
                  x-val
                  (arc-or y ...))))]))
 
-
-
 (define-syntax (arc-case stx)
   (syntax-case stx ()
     [(_ val-exp k+v ...)
@@ -329,9 +327,6 @@
                  (arc-if (arc-is val '#,(first k+vs))
                          #,(second k+vs)
                          #,(loop (rest (rest k+vs)))))]))))]))
-
-
-
 
 
 (define (arc-list . args)
