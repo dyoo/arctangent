@@ -105,9 +105,6 @@
                                        #f)])
        (begin 
          (cond
-           [(syntax-property expanded-lhs 'setter)
-            => (lambda (f)
-                 (f #'rhs))]
            [(identifier? expanded-lhs)
             (cond
               [(eq? #f (identifier-binding expanded-lhs))
