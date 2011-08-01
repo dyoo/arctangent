@@ -36,6 +36,34 @@
 
 
 
+;; Pairs
+
+(struct arc-cons (h t)
+  #:transparent
+  #:mutable)
+
+(struct Arc-car ()
+  #:property prop:procedure
+  (lambda (self v)
+    (arc-cons-h v))
+  
+  #:property prop:setter
+  (lambda (self a-pair v)
+    (set-arc-cons-h! a-pair v)))
+
+(define arc-car (Arc-car))
+
+
+(struct Arc-cdr ()
+  #:property prop:procedure
+  (lambda (self v)
+    (arc-cons-t v))
+  
+  #:property prop:setter
+  (lambda (self a-pair v)
+    (set-arc-cons-t! a-pair v)))
+
+(define arc-cdr (Arc-cdr))
 
 
 
@@ -71,8 +99,8 @@
     [(null? lst)
      nil]
     [else
-     (mcons (car lst)
-            (list->arc-list (cdr lst)))]))
+     (arc-cons (car lst)
+               (list->arc-list (cdr lst)))]))
 
 
 
@@ -129,5 +157,5 @@
     [(eq? l nil)
      nil]
     [else 
-     (mcons (f (mcar l))
-            (arc-map f (mcdr l)))]))
+     (arc-cons (f (arc-car l))
+            (arc-map f (arc-cdr l)))]))

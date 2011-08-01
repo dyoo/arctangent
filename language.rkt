@@ -136,6 +136,37 @@
                    rhs-value))])])))]))
 
 
+(define-syntax (arc-zap stx)
+  (syntax-case stx ()
+    [(_ fn (structure index))
+     (quasisyntax/loc stx
+       (let ([data structure]
+             [rhs-value (fn (structure index))])
+         (if (prop:setter? data)
+             (begin ((prop:setter-accessor data) data index rhs-value)
+                    rhs-value)
+             (error '= "~e does not support the setter protocol" data))))]
+    [(_ fn id)
+     (identifier? #'id)
+     (quasisyntax/loc stx
+       (assign id (fn id)))]))
+    
+
+(define-syntax (arc-increment stx)
+  (syntax-case stx ()
+    [(_ x)
+     (syntax/loc stx
+       (arc-zap add1 x))]))
+
+(define-syntax (arc-decrement stx)
+  (syntax-case stx ()
+    [(_ x)
+     (syntax/loc stx
+       (arc-zap sub1 x))]))
+
+
+
+
 
 (define-syntax (arc-quote stx)
   (syntax-case stx ()
@@ -143,32 +174,6 @@
      (convert-datum (syntax->datum #'thing) #t)]))
 
          
-(define-syntax (arc-car stx)
-  (syntax-case stx ()
-    [(_ v)
-     (syntax-property (syntax/loc stx
-                        (mcar v))
-                      'setter
-                      (lambda (rhs)
-                        #`(set-mcar! v #,rhs)))]
-    [_
-     (identifier? stx)
-     (syntax/loc stx 
-       mcar)]))
-
-
-(define-syntax (arc-cdr stx)
-  (syntax-case stx ()
-    [(_ v)
-     (syntax-property (syntax/loc stx
-                        (mcdr v))
-                      'setter
-                      (lambda (rhs)
-                        #`(set-mcdr! v #,rhs)))]
-    [_
-     (identifier? stx)
-     (syntax/loc stx 
-       mcdr)]))
 
 
 (define-syntax (def stx)
@@ -380,7 +385,7 @@
 
 
 (provide [rename-out [assign =]
-                     [mcons cons]
+                     [arc-cons cons]
                      [arc-quote quote]
                      [arc-car car]
                      [arc-cdr cdr]
@@ -402,7 +407,10 @@
                      [arc-do do]
                      [arc-when when]
                      [arc-no no]
-                     [arc-case case]]
+                     [arc-case case]
+                     [arc-zap zap]
+                     [arc-increment ++]
+                     [arc-decrement --]]
          #%top-interaction
          #%module-begin
 

@@ -100,10 +100,10 @@
       
       (= z (cons (cons 3 4) 5))
       (= (car (car z)) 'three)
-      z                   ==>  (mcons (mcons 'three  4)  5)
+      z                   ==>  (arc-cons (arc-cons 'three  4)  5)
       
       (= (cdr z) 'five)
-      z                   ==> (mcons (mcons 'three  4)  'five)
+      z                   ==> (arc-cons (arc-cons 'three  4)  'five)
       
       ---
       
@@ -248,7 +248,7 @@
       (def foo (x y . z) 
        (list x y z))
       
-      (foo (+ 1 2) (+ 3 4) (+ 5 6) (+ 7 8)) ==> (mcons 3 (mcons 7 (mcons (mcons 11 (mcons 15 nil))
+      (foo (+ 1 2) (+ 3 4) (+ 5 6) (+ 7 8)) ==> (arc-cons 3 (arc-cons 7 (arc-cons (arc-cons 11 (arc-cons 15 nil))
                                                                          nil)))
 
 
@@ -263,7 +263,7 @@
       
       (f:g 3) ==> '36
 
-      (map odd:car '((1 2) (4 5) (7 9))) ==> (mcons t (mcons nil (mcons t nil)))
+      (map odd:car '((1 2) (4 5) (7 9))) ==> (arc-cons t (arc-cons nil (arc-cons t nil)))
       
       ---
       
@@ -275,14 +275,14 @@
       (~f 0) ==> nil
       (~f 1) ==> t
       
-      (map ~odd '(1 2 3 4 5)) ==> (mcons nil (mcons t (mcons nil (mcons t (mcons nil nil)))))
+      (map ~odd '(1 2 3 4 5)) ==> (arc-cons nil (arc-cons t (arc-cons nil (arc-cons t (arc-cons nil nil)))))
 
       ---
 
       ;; Implicit lambdas
       ((+ _ 10) 3) ==> 13
       
-      (map [+ _ 10] '(1 2 3))  ==> (mcons 11 (mcons 12 (mcons 13 nil)))
+      (map [+ _ 10] '(1 2 3))  ==> (arc-cons 11 (arc-cons 12 (arc-cons 13 nil)))
               
 
       )))
