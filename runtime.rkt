@@ -94,6 +94,10 @@
 (define nil (arc-nil))
 
 
+(define (arc-list . args)
+  (list->arc-list args))
+
+
 (define (list->arc-list lst)
   (cond
     [(null? lst)
@@ -110,6 +114,15 @@
 
 (define-syntax-rule (arc-false? x)
   (eq? x nil))
+
+
+
+(define (arc-is x y)
+  (adapt/bool (arc-is? x y)))
+
+
+(define (arc-iso x y)
+  (adapt/bool (equal? x y)))
 
 
 

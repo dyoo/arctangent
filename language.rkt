@@ -13,7 +13,6 @@
          "runtime.rkt") 
 
 
-
 (define-syntax-parameter arc-lambda-placeholder
   (lambda (stx)
     (raise-syntax-error #f "placeholder is being used outside of a function template" stx)))
@@ -97,7 +96,7 @@
 ;; We expand the left hand side and see if it's already a bound identifier.
 ;; If it hasn't been bound yet, this becomes a definition.
 ;; Otherwise, it turns magically into an assignment.
-(define-syntax (assign stx)
+(define-syntax (arc-assign stx)
   (syntax-case stx ()
     [(_ lhs rhs)
      (let ([expanded-lhs (local-expand #'lhs 
@@ -146,7 +145,7 @@
     [(_ fn id)
      (identifier? #'id)
      (quasisyntax/loc stx
-       (assign id (fn id)))]))
+       (arc-assign id (fn id)))]))
     
 
 (define-syntax (arc-increment stx)
@@ -154,6 +153,7 @@
     [(_ x)
      (syntax/loc stx
        (arc-zap add1 x))]))
+
 
 (define-syntax (arc-decrement stx)
   (syntax-case stx ()
@@ -331,16 +331,6 @@
                          #,(loop (rest (rest k+vs)))))]))))]))
 
 
-(define (arc-list . args)
-  (list->arc-list args))
-
-
-(define (arc-is x y)
-  (adapt/bool (arc-is? x y)))
-
-
-(define (arc-iso x y)
-  (adapt/bool (equal? x y)))
 
 
 (define-for-syntax (contains-lambda-placeholder? los)
@@ -381,7 +371,7 @@
 
 
 
-(provide [rename-out [assign =]
+(provide [rename-out [arc-assign =]
                      [arc-cons cons]
                      [arc-quote quote]
                      [arc-car car]

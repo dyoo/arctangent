@@ -248,9 +248,12 @@
       (def foo (x y . z) 
        (list x y z))
       
-      (foo (+ 1 2) (+ 3 4) (+ 5 6) (+ 7 8)) ==> (arc-cons 3 (arc-cons 7 (arc-cons (arc-cons 11 (arc-cons 15 nil))
-                                                                         nil)))
-
+      (foo (+ 1 2) (+ 3 4) (+ 5 6) (+ 7 8)) ==> (arc-cons 3 
+                                                          (arc-cons 7 
+                                                                    (arc-cons 
+                                                                     (arc-cons 11 (arc-cons 15 nil))
+                                                                     nil)))
+      
 
       ---
       
