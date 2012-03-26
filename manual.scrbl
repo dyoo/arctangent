@@ -6,13 +6,18 @@
 
 @section{Introduction}
 
-...
-
 @subsection{Setting up a PLaneT link}
 
 @subsection{A brief look at Arc}
 
 @subsection{Overview of the rest of the document}
+
+
+@section{Bare bones}
+
+(Minimal language with no bindings except top-interaction)
+
+@subsection{Making a @filepath{lang/reader.rkt}}
 
 
 
