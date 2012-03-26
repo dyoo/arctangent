@@ -13,9 +13,6 @@
          "runtime.rkt") 
 
 
-(define-syntax-parameter arc-lambda-placeholder
-  (lambda (stx)
-    (raise-syntax-error #f "placeholder is being used outside of a function template" stx)))
 
 
 
@@ -37,7 +34,9 @@
        #t])))
 
 
-
+;; looks-like-composition?: identifier-syntax -> boolean
+;;
+;; Returns true if the identifier looks like function composition.
 (define-for-syntax (looks-like-composition? id)
   (let ([name (symbol->string (syntax-e id))])
     (let ([pieces (regexp-split #rx":" name)])
@@ -108,7 +107,11 @@
             (cond
               [(eq? #f (identifier-binding expanded-lhs))
                (quasisyntax/loc stx
-                 (begin (define #,expanded-lhs rhs)
+                 ;; Note: we create a definition and then set! it so
+                 ;; that we convince Racket that it shouldn't be
+                 ;; treated as a constant.
+                 (begin (define #,expanded-lhs #f) 
+                        (set! #,expanded-lhs rhs)
                         #,expanded-lhs))]
               [else
                (quasisyntax/loc stx
@@ -185,8 +188,11 @@
                  name))]
        [else
         (syntax/loc stx
-          (begin (define name (fn args
-                                body ...))
+          ;; Note: we create a definition and then set! it so
+          ;; that we convince Racket that it shouldn't be
+          ;; treated as a constant.
+          (begin (define name #f)
+                 (set! name (fn args body ...))
                  name))])]))
 
 (define-syntax (fn stx)
@@ -332,30 +338,28 @@
 
 
 
-
-(define-for-syntax (contains-lambda-placeholder? los)
-  (ormap (lambda (stx) (and (identifier? stx)
-                            (free-identifier=? #'arc-lambda-placeholder stx)))
-         los))
+;; Returns true if the syntax looks like it has square brackets.
+(define-for-syntax (square-bracketed? stx)
+  (eq? (syntax-property stx 'paren-shape) #\[))
 
 
 ;; application sees if the expression is an implicit lambda
 (define-syntax (arc-app stx)
   (syntax-case stx ()
-    [(_ operator+operands ...)
+    [(_ operator operands ...)
      (cond
-       [(contains-lambda-placeholder? (syntax->list #'(operator+operands ...)))
+       [(square-bracketed? stx)
         (with-syntax ([(id) (generate-temporaries #'(_))])
           (syntax/loc stx
             (fn (id)
                 (syntax-parameterize ([arc-lambda-placeholder (make-rename-transformer #'id)])
-                                     (#%app operator+operands ...)))))]
+                   (#%app operator operands ...)))))]
        [else
         (syntax/loc stx
-          (#%app operator+operands ...))])]
+          (#%app operator operands ...))])]
     [(_ . operator+operands)
      (syntax/loc stx
-       (#%app . operator+operands))]
+         (#%app . operator+operands))]
     [(_)
      (identifier? stx)
      (syntax/loc stx
@@ -363,7 +367,24 @@
 
 
 
-     
+(define-syntax-parameter arc-lambda-placeholder
+  (lambda (stx)
+    (syntax-case stx ()
+      ;; Edge case: if the placeholder itself is used like [_], then we really do want it to go
+      ;; through the #%app macro.
+      [(elts ...)
+       (square-bracketed? stx)
+       (syntax/loc stx
+         [arc-app elts ...])]
+      
+      ;; Otherwise, highlight the placeholder symbol itself in the error message.
+      [(placeholder-symbol elts ...)
+       (raise-syntax-error #f "placeholder is being used outside of a function template" #'placeholder-symbol)]
+
+      [else
+       (raise-syntax-error #f "placeholder is being used outside of a function template" stx)])))
+
+
     
 
 

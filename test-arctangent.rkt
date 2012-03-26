@@ -282,12 +282,18 @@
 
       ---
 
-      ;; Implicit lambdas, by using the underscore notation.
-      ((+ _ 10) 3) ==> 13
+      ;; Implicit lambdas, by using the bracket notation.
+      ([+ _ 10] 3) ==> 13
       
       (map [+ _ 10] '(1 2 3))  ==> (arc-cons 11 (arc-cons 12 (arc-cons 13 nil)))
               
 
+      ---
+
+      (= my-app-zero [_ 0])
+      (my-app-zero (fn (x) x)) ==> 0
+      
+      
       )))
 
   
