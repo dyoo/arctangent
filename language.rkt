@@ -337,10 +337,12 @@
                          #,(loop (rest (rest k+vs)))))]))))]))
 
 
-
 ;; Returns true if the syntax looks like it has square brackets.
 (define-for-syntax (square-bracketed? stx)
-  (eq? (syntax-property stx 'paren-shape) #\[))
+  (define paren-shape (syntax-property stx 'paren-shape))
+  (or (eq? paren-shape #\[)
+      (and (pair? paren-shape)
+           (eq? (car paren-shape) #\[))))
 
 
 ;; application sees if the expression is an implicit lambda
@@ -374,8 +376,10 @@
       ;; through the #%app macro.
       [(elts ...)
        (square-bracketed? stx)
-       (syntax/loc stx
-         [arc-app elts ...])]
+       (syntax-property (syntax/loc stx
+                          (arc-app elts ...))
+                        'paren-shape
+                        #\[)]
       
       ;; Otherwise, highlight the placeholder symbol itself in the error message.
       [(placeholder-symbol elts ...)
