@@ -1,7 +1,20 @@
 #lang scribble/manual
 
-@title{Arctangent: a unprincipled glance at language hackery}
+@(require racket/sandbox
+          scribble/eval)
+
+@title{Arctangent: an approach to language hacking}
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
+
+
+@(define arc-eval
+   (call-with-trusted-sandbox-configuration 
+    (lambda ()
+      (parameterize ([sandbox-output 'string]
+                     [sandbox-error-output 'string])
+        (make-evaluator "language.rkt")))))
+
+
 
 
 @section{Introduction}
@@ -10,52 +23,63 @@ Back in 2008, Paul Graham and Robert Morris released a language called
 @link["http://arclanguage.org"]{Arc}.  Their stated goal was to design
 a language for exploratory programming.  The language looks much like
 a Lisp, but with several features to make the language briefer and
-more implicit, with the expectation that good programmers can be more
-expressive and still avoid shooting themselves in the foot.
+more implicit, with the expectation that good programmers can take
+advantage of brevity and avoid shooting themselves in the foot.
 
 Their implementation builds on top of the
 @link["http://racket-lang.org"]{Racket} language, using Racket's
 existing runtime and
 @link["http://docs.racket-lang.org/guide/reflection.html"]{dynamic
 evaluation} features to bootstrap the implementation.  Arc's official
-implementation, however, doesn't reuse much else of Racket's support
-for language construction: it doesn't use Racket's modules to organize
-programs, nor Racket's hygienic macro system to build the language's
-semantics.
+implementation, however, doesn't reuse Racket's module system to
+organize programs, nor Racket's hygienic macro system to build the
+language's semantics.
 
 As a consequence of this, the rest of the Racket language toolchain
 (like the @link["http://docs.racket-lang.org/raco/make.html"]{bytecode
 compiler} or @link["http://docs.racket-lang.org/raco/exe.html"]{binary
 package generator}) can't be easily reused by the Arc community.
-Similarly, the Racket community can't reuse the excellent work that
-the Arc community has put into their libraries.
+Similarly, the Racket community can't reuse the work that the Arc
+community has put into their libraries.
 
-I believe that a core reason for this re-invention is so that the Arc
-creators can take a principled, minimalist approach toward language
-development.  They want the kernel of their language to use as few
-primitives as possible.  As a result, it is likely that they excluded
-the use of most of the Racket toolchain (macros, modules) because it
-was too conceptually large to be considered part of their kernel.
+I believe that a core reason for this is so that the Arc creators can
+make a principled, minimalist approach toward language development.
+They want the kernel of their language to use as few primitives as
+possible.  It's likely that they excluded the use of most of the
+Racket toolchain (macros, modules) because it was too conceptually
+large to be considered kernel.
 
-But what would things look like if we didn't have such morals?  What
-if we take an unprincipled approach?
+But what if we take an unprincipled approach?
 
 Toward that end, the following is a primer on how to use Racket's
-language infrastructure to hack together an Arc-like language.  This
+language infrastructure to hack together a Arc-like language.  This
 tutorial is targetted toward programmers who have some intermediate
-Racket experience, but should be self contained.  Unlike the
-@link["http://hashcollision.org/brainfudge"]{brainf*ck} tutorial, we
-won't be so focused on syntactic issues, but rather how to define the
-semantics of a language.  The language that we'll develop here is
-deliberately named @emph{Arctangent} because we don't intend to
-implement Arc.  That way, we'll be free to deviate from the language
-if it helps to demonstrate certain features of the Racket language
-toolchain or simplify its presentation.
+Racket experience, but should be self contained.  Like the
+@link["http://hashcollision.org/brainfudge"]{brainf*ck} tutorial,
+we'll focus on how to define the semantics of a language with macros
+and modules.
+
+The language that we'll develop here is deliberately named
+@emph{Arctangent} because we don't intend to implement Arc. We'll be
+free to deviate from the language if it helps to simplify this
+tutorial.
+
 
 
 
 
 @subsection{A brief look at Arctangent}
+
+Before we begin, let's approach Arctangent and see what it looks like.
+It has numbers and strings:
+@interaction[#:eval arc-eval
+
+25
+
+"foo"
+]
+
+
 
 
 

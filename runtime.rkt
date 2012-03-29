@@ -27,7 +27,8 @@
     (let ([recur (case mode
                    [(#t) write]
                    [(#f) display]
-                   [else (lambda (p port) (print p port mode))])])
+                   [else
+                    (lambda (p port) (print p port mode))])])
       (recur (str-v a-str) port)))
   
   #:property prop:setter
