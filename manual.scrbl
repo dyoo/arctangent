@@ -11,7 +11,8 @@
    (call-with-trusted-sandbox-configuration 
     (lambda ()
       (parameterize ([sandbox-output 'string]
-                     [sandbox-error-output 'string])
+                     [sandbox-error-output 'string]
+                     [print-as-expression #f])
         (make-evaluator "language.rkt")))))
 
 
@@ -44,10 +45,10 @@ community has put into their libraries.
 
 I believe that a core reason for this is so that the Arc creators can
 make a principled, minimalist approach toward language development.
-They want the kernel of their language to use as few primitives as
-possible.  It's likely that they excluded the use of most of the
-Racket toolchain (macros, modules) because it was too conceptually
-large to be considered kernel.
+They want the @emph{kernel} of their language to use as few primitives
+as possible.  It's likely that the Arc developers excluded the use of
+the built-in macros and modules because the developers considered
+those features too conceptually large to be considered kernel.
 
 But what if we take an unprincipled approach?
 

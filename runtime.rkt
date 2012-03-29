@@ -25,10 +25,15 @@
   #:property prop:custom-write
   (lambda (a-str port mode)
     (let ([recur (case mode
-                   [(#t) write]
-                   [(#f) display]
+                   [(#t)
+                    (lambda (p port)
+                      (write p port))]
+                   [(#f)
+                    (lambda (p port)
+                      (display p port))]
                    [else
-                    (lambda (p port) (print p port mode))])])
+                    (lambda (p port)
+                      (print p port mode))])])
       (recur (str-v a-str) port)))
   
   #:property prop:setter
