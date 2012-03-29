@@ -45,8 +45,34 @@
 ;; Pairs
 
 (struct arc-cons (h t)
-  #:transparent
-  #:mutable)
+        #:transparent
+        #:mutable
+        #:property prop:custom-write
+        (lambda (p port mode)
+          (case mode
+            [(#t)
+             (cond
+              [(arc-list? p)
+               (write (arc-list->list p) port)]
+              [else
+               (write (cons (arc-cons-h p) (arc-cons-t p))
+                      port)])]
+            [(#f)
+             (cond
+              [(arc-list? p)
+               (display (arc-list->list p) port)]
+              [else
+               (display (cons (arc-cons-h p) (arc-cons-t p))
+                        port)])]
+            [else
+             (cond
+              [(arc-list? p)
+               (print (arc-list->list p) port mode)]
+              [else
+               (print (cons (arc-cons-h p) (arc-cons-t p))
+                      port
+                      mode)])])))
+
 
 (struct Arc-car ()
   #:property prop:procedure
@@ -104,6 +130,19 @@
   (list->arc-list args))
 
 
+(define (arc-list? x)
+  (define ht (make-hasheq))
+  (let loop ([x x])
+    (cond [(eq? x nil) #t]
+          [(arc-cons? x)
+           (cond [(hash-has-key? ht x)
+                  #f]
+                 [else
+                  (hash-set! ht x #t)
+                  (loop (arc-cons-t x))])])))
+
+
+
 (define (list->arc-list lst)
   (cond
     [(null? lst)
@@ -111,6 +150,16 @@
     [else
      (arc-cons (car lst)
                (list->arc-list (cdr lst)))]))
+
+(define (arc-list->list lst)
+  (cond
+    [(eq? lst nil)
+     '()]
+    [else
+     (cons (arc-cons-h lst)
+           (arc-list->list (arc-cons-t lst)))]))
+
+
 
 
 

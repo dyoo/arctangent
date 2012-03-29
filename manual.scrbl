@@ -1,6 +1,7 @@
 #lang scribble/manual
 
 @(require racket/sandbox
+          syntax/strip-context
           scribble/eval)
 
 @title{Arctangent: an approach to language hacking}
@@ -13,9 +14,23 @@
       (parameterize ([sandbox-output 'string]
                      [sandbox-error-output 'string]
                      [print-as-expression #f])
-        (make-evaluator "language.rkt")))))
+        (define eval (make-evaluator "language.rkt"))
+        ;; Kludge kludge kludge
+        ;; Something is wrong with @interaction, so we have to kludge
+        ;; our way around it...
+        (define (wrapped-eval x)
+          (cond [(equal? x '(map [+ _ 10] '(1 2 3)))
+                 ;; This is the first example that demonstrates anonymous lambdas
+                 ;; via brackets.
+                 (eval (strip-context #'(map [+ _ 10] '(1 2 3))))]
+                [else
+                 (eval x)]))
+        wrapped-eval))))
 
 
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@; Happy April Fools Day 2012.
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 @section{Introduction}
@@ -41,7 +56,10 @@ As a consequence of this, the rest of the Racket language toolchain
 compiler} or @link["http://docs.racket-lang.org/raco/exe.html"]{binary
 package generator}) can't be easily reused by the Arc community.
 Similarly, the Racket community can't reuse the work that the Arc
-community has put into their libraries.
+community has put into their libraries.  The situation is awkward.
+
+@; I'd like to put "Arc-ward" here instead, but oh well.
+
 
 I believe that a core reason for this is so that the Arc creators can
 make a principled, minimalist approach toward language development.
@@ -64,8 +82,8 @@ and modules.
 The language that we'll develop here is deliberately named
 @bold{Arctangent} because it's only tangentially concerned with Arc.
 The real purpose of this tutorial is to show the gearing in Racket's
-language toolchain.  We'll deviate from the Arc language if it helps
-to simplify the presentation in this tutorial.
+language toolchain.  We'll deviate from the Arc language when it helps
+to simplify the tutorial's presentation.
 
 With that, let's begin!
 
@@ -73,27 +91,58 @@ With that, let's begin!
 
 @subsection{A brief look at Arctangent}
 
-Before we start, let's approach Arctangent and see what it looks like.
-Like almost every other programming language, it has numbers and strings:
-
 @margin-note{You can try this yourself, by writing a module in
  @litchar{#lang planet dyoo/arctangent}.}
+Before we start, let's quickly approach Arctangent and see what it looks like.
+
+Every programming language almost always has numbers, strings, and
+pairs as primitives, as does Arctangent:
+
 @interaction[#:eval arc-eval
 25
 "foo"
+(cons 'hi nil)
 ]
-We can bind names to variables, or rebind them.
+
+We can bind names to variables, or rebind them:
 @interaction[#:eval arc-eval
 (= answer 41)
 (= answer (+ answer 1))]
 
+A computer language should have functions to define and apply:
+@interaction[#:eval arc-eval
+(def average (x y)
+  (/ (+ x y) 2))
+(average 3 4)
+]
+
+Respectively, strings also act like functions... but can also be mutated:
+@interaction[#:eval arc-eval
+(= a-string "hello again")
+(a-string 0)
+(a-string 1)
+(= (a-string 1) #\i)
+a-string
+]
+
+Even parentheses can be functions... by using square brackets:
+@interaction[#:eval arc-eval
+             (map [+ _ 10] '(1 2 3))
+]
+
+So beware!  Arctangent has several features that certainly aren't
+@litchar{#lang racket}.
 
 
 
 
 @subsection{Setting up a PLaneT link}
 
-Before we do so, let's set up a PLaneT link...
+Now that we have an better idea of what Arctangent is about, let's see
+how to implement it.
+
+What we first want to do is tell Racket that we're defining a new
+language, and that its definition lives somewhere on our filesystem.
 
 
 
@@ -101,7 +150,7 @@ Before we do so, let's set up a PLaneT link...
 
 @subsection{Overview of the rest of the document}
 
-We'll build this language iteratively, by starting off with the empty
+We'll build Arctangent iteratively, by starting off with the empty
 language, and then build it up progressively.
 
 
