@@ -422,9 +422,9 @@
                      [arc-case case]
                      [arc-zap zap]
                      [arc-increment ++]
-                     [arc-decrement --]]
+                     [arc-decrement --]
+                     [#%plain-module-begin #%module-begin]]
          #%top-interaction
-         #%module-begin
 
          nil
          

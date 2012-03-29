@@ -47,39 +47,45 @@ I believe that a core reason for this is so that the Arc creators can
 make a principled, minimalist approach toward language development.
 They want the @emph{kernel} of their language to use as few primitives
 as possible.  It's likely that the Arc developers excluded the use of
-the built-in macros and modules because the developers considered
-those features too conceptually large to be considered kernel.
+Racket's built-in macro and module systems because the developers
+considered those features too conceptually large to be considered
+kernel.
 
 But what if we take an unprincipled approach?
 
 Toward that end, the following is a primer on how to use Racket's
 language infrastructure to hack together a Arc-like language.  This
 tutorial is targetted toward programmers who have some intermediate
-Racket experience, but should be self contained.  Like the
+Racket experience, but should be otherwise self-contained.  Like the
 @link["http://hashcollision.org/brainfudge"]{brainf*ck} tutorial,
 we'll focus on how to define the semantics of a language with macros
 and modules.
 
 The language that we'll develop here is deliberately named
-@emph{Arctangent} because we don't intend to implement Arc. We'll be
-free to deviate from the language if it helps to simplify this
-tutorial.
+@bold{Arctangent} because it's only tangentially concerned with Arc.
+The real purpose of this tutorial is to show the gearing in Racket's
+language toolchain.  We'll deviate from the Arc language if it helps
+to simplify the presentation in this tutorial.
 
-
+With that, let's begin!
 
 
 
 @subsection{A brief look at Arctangent}
 
-Before we begin, let's approach Arctangent and see what it looks like.
-It has numbers and strings:
+Before we start, let's approach Arctangent and see what it looks like.
+Like almost every other programming language, it has numbers and strings:
+
+@margin-note{You can try this yourself, by writing a module in
+ @litchar{#lang planet dyoo/arctangent}.}
 @interaction[#:eval arc-eval
-
 25
-
 "foo"
 ]
-
+We can bind names to variables, or rebind them.
+@interaction[#:eval arc-eval
+(= answer 41)
+(= answer (+ answer 1))]
 
 
 
